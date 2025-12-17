@@ -10,45 +10,29 @@ Requirements
 
 Core Functionalities:
 
+- Voice-to-Text with Generative AI: Convert spoken input into a text transcript, with AI-enhanced transcription accuracy, especially for medical terms.
 
-Voice-to-Text with Generative AI: Convert spoken input into a text transcript, with AI-enhanced transcription accuracy, especially for medical terms.
-
-
-
-Real-Time Translation and Audio Playback: Provide real-time translation of the transcript with a "Speak" button for audio playback.
+- Real-Time Translation and Audio Playback: Provide real-time translation of the transcript with a "Speak" button for audio playback.
 
 
-
-Mobile-First Design: Ensure the app is responsive and optimized for mobile and desktop use.
+- Mobile-First Design: Ensure the app is responsive and optimized for mobile and desktop use.
 
 
 User Interface and Experience:
 
+- Dual Transcript Display: Show both original and translated transcripts in real-time.
 
-Dual Transcript Display: Show both original and translated transcripts in real-time.
+- Speak Button: Accessible for audio playback of translated text.
 
+- Language Selection: Allow users to choose input and output languages easily.
 
+- Technical Requirements:
 
-Speak Button: Accessible for audio playback of translated text.
+- Generative AI Tools: Use generative AI (e.g., OpenAI API or similar) for both translation and coding assistance.
 
+- Speech Recognition API: Integrate a speech recognition API (e.g., Web Speech API or Google Speech-to-Text).
 
-
-Language Selection: Allow users to choose input and output languages easily.
-
-
-Technical Requirements:
-
-
-Generative AI Tools: Use generative AI (e.g., OpenAI API or similar) for both translation and coding assistance.
-
-
-
-Speech Recognition API: Integrate a speech recognition API (e.g., Web Speech API or Google Speech-to-Text).
-
-
-
-Deployment Platform: Deploy on a platform like Vercel, V0, or Cursor. Provide a live link.
-
-
+- Deployment Platform: Deploy on a platform like Vercel, V0, or Cursor. Provide a live link.
 
 Data Privacy and Security: Ensure patient confidentiality with basic security measures.
+* No data being stored at the server and client side. No cookies or session being stored. 
