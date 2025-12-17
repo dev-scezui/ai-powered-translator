@@ -12,6 +12,7 @@ interface SpeechRecorderProps {
 export function SpeechRecorder({ onTranscriptChange, language, variant = 'default' }: SpeechRecorderProps) {
     const [isRecording, setIsRecording] = useState(false);
     const recognitionRef = useRef<any>(null); // Type 'any' for window.SpeechRecognition to avoid ts issues for now
+    const accumulatedTranscriptRef = useRef<string>(''); // Track accumulated final transcript
 
     useEffect(() => {
         if (typeof window !== 'undefined' && 'webkitSpeechRecognition' in window) {
@@ -39,27 +40,30 @@ export function SpeechRecorder({ onTranscriptChange, language, variant = 'defaul
             recognitionRef.current.stop();
             setIsRecording(false);
         } else {
+            // Reset accumulated transcript when starting a new recording
+            accumulatedTranscriptRef.current = '';
+            
             const recognition = recognitionRef.current;
             recognition.onresult = (event: any) => {
-                let finalTranscript = '';
                 let interimTranscript = '';
 
-                for (let i = 0; i < event.results.length; ++i) {
-                    if (event.results[i].isFinal) {
-                        finalTranscript += event.results[i][0].transcript;
+                // Only process results from the resultIndex onwards (new results)
+                // This prevents reprocessing old results on mobile browsers
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    const result = event.results[i];
+                    const transcript = result[0].transcript;
+
+                    if (result.isFinal) {
+                        // Append new final result to accumulated transcript
+                        accumulatedTranscriptRef.current += transcript;
                     } else {
-                        interimTranscript += event.results[i][0].transcript;
+                        // Collect interim (not-yet-final) results
+                        interimTranscript += transcript;
                     }
                 }
 
-                // Android Chrome bug fix:
-                // Sometimes interim results contain the full transcript including finalized text.
-                // We check if the interim text starts with the final text to detect this duplication.
-                if (finalTranscript.length > 0 && interimTranscript.startsWith(finalTranscript)) {
-                    interimTranscript = interimTranscript.substring(finalTranscript.length);
-                }
-
-                onTranscriptChange(finalTranscript + interimTranscript, true);
+                // Send accumulated finals + current interim
+                onTranscriptChange(accumulatedTranscriptRef.current + interimTranscript, true);
             };
 
             recognition.onerror = (event: any) => {
