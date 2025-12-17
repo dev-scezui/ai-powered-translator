@@ -24,3 +24,14 @@ export async function translateTextAction(text: string, sourceLang: string, targ
         return "Error interpreting translation.";
     }
 }
+
+export async function checkSystemStatusAction(): Promise<boolean> {
+    try {
+        // Simple lightweight call to verify connectivity
+        await openai.models.list();
+        return true;
+    } catch (error) {
+        console.error("System check fail:", error);
+        return false;
+    }
+}
