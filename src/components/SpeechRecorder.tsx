@@ -11,16 +11,24 @@ interface SpeechRecorderProps {
 
 export function SpeechRecorder({ onTranscriptChange, language, variant = 'default' }: SpeechRecorderProps) {
     const [isRecording, setIsRecording] = useState(false);
-    const recognitionRef = useRef<any>(null); // Type 'any' for window.SpeechRecognition to avoid ts issues for now
-    const accumulatedTranscriptRef = useRef<string>(''); // Track accumulated final transcript
+    const recognitionRef = useRef<any>(null);
+    const accumulatedTranscriptRef = useRef<string>(''); // Track accumulated final transcript (desktop only)
+    const isMobileRef = useRef<boolean>(false);
 
     useEffect(() => {
-        if (typeof window !== 'undefined' && 'webkitSpeechRecognition' in window) {
-            // @ts-ignore
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            recognitionRef.current = new SpeechRecognition();
-            recognitionRef.current.continuous = true;
-            recognitionRef.current.interimResults = true;
+        if (typeof window !== 'undefined') {
+            // Detect mobile device
+            isMobileRef.current = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+                navigator.userAgent
+            );
+
+            if ('webkitSpeechRecognition' in window) {
+                // @ts-ignore
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                recognitionRef.current = new SpeechRecognition();
+                recognitionRef.current.continuous = true;
+                recognitionRef.current.interimResults = true;
+            }
         }
     }, []);
 
@@ -44,26 +52,49 @@ export function SpeechRecorder({ onTranscriptChange, language, variant = 'defaul
             accumulatedTranscriptRef.current = '';
             
             const recognition = recognitionRef.current;
+            const isMobile = isMobileRef.current;
+
+            // Source - https://stackoverflow.com/a/73reduced
+            // Mobile browsers return full accumulated text in each result,
+            // while desktop browsers return incremental results
             recognition.onresult = (event: any) => {
                 let interimTranscript = '';
+                let finalTranscript = '';
 
-                // Only process results from the resultIndex onwards (new results)
-                // This prevents reprocessing old results on mobile browsers
                 for (let i = event.resultIndex; i < event.results.length; ++i) {
-                    const result = event.results[i];
-                    const transcript = result[0].transcript;
+                    const transcript = event.results[i][0].transcript;
 
-                    if (result.isFinal) {
-                        // Append new final result to accumulated transcript
-                        accumulatedTranscriptRef.current += transcript;
+                    if (event.results[i].isFinal) {
+                        if (isMobile) {
+                            // Mobile: transcript already contains full text
+                            finalTranscript = transcript;
+                        } else {
+                            // Desktop: accumulate transcripts
+                            finalTranscript += transcript;
+                        }
                     } else {
-                        // Collect interim (not-yet-final) results
-                        interimTranscript += transcript;
+                        if (isMobile) {
+                            // Mobile: transcript already contains full interim text
+                            interimTranscript = transcript;
+                        } else {
+                            // Desktop: accumulate interim transcripts
+                            interimTranscript += transcript;
+                        }
+                    }
+                }
+
+                if (finalTranscript) {
+                    if (isMobile) {
+                        // Mobile: use final transcript directly
+                        accumulatedTranscriptRef.current = finalTranscript;
+                    } else {
+                        // Desktop: append to accumulated
+                        accumulatedTranscriptRef.current += finalTranscript;
                     }
                 }
 
                 // Send accumulated finals + current interim
-                onTranscriptChange(accumulatedTranscriptRef.current + interimTranscript, true);
+                onTranscriptChange(accumulatedTranscriptRef.current + interimTranscript, !!finalTranscript);
             };
 
             recognition.onerror = (event: any) => {
