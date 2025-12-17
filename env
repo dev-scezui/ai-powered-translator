@@ -1,0 +1,6 @@
+# Grok (xAI) or Groq API Key
+# Since xAI free tier is limited, we recommend Groq for free, fast inference.
+# Get key here: https://console.groq.com/keys
+GROQ_API_KEY=gsk_placeholder_key
+
+# Usage: Rename this file to .env.local and add your key.
