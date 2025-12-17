@@ -41,11 +41,25 @@ export function SpeechRecorder({ onTranscriptChange, language, variant = 'defaul
         } else {
             const recognition = recognitionRef.current;
             recognition.onresult = (event: any) => {
-                let fullTranscript = '';
+                let finalTranscript = '';
+                let interimTranscript = '';
+
                 for (let i = 0; i < event.results.length; ++i) {
-                    fullTranscript += event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalTranscript += event.results[i][0].transcript;
+                    } else {
+                        interimTranscript += event.results[i][0].transcript;
+                    }
                 }
-                onTranscriptChange(fullTranscript, true);
+
+                // Android Chrome bug fix:
+                // Sometimes interim results contain the full transcript including finalized text.
+                // We check if the interim text starts with the final text to detect this duplication.
+                if (finalTranscript.length > 0 && interimTranscript.startsWith(finalTranscript)) {
+                    interimTranscript = interimTranscript.substring(finalTranscript.length);
+                }
+
+                onTranscriptChange(finalTranscript + interimTranscript, true);
             };
 
             recognition.onerror = (event: any) => {
