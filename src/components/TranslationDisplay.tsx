@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Volume2, Square } from 'lucide-react';
+import { Volume2, Square, ArrowRightLeft } from 'lucide-react';
 import { SpeechRecorder } from './SpeechRecorder';
+import { LanguageSelector } from './LanguageSelector';
 
 interface TranslationDisplayProps {
     originalText: string;
@@ -9,11 +10,35 @@ interface TranslationDisplayProps {
     targetLang: string;
     onTranscriptChange: (transcript: string, isFinal: boolean) => void;
     sourceLang: string;
+    setSourceLang: (lang: string) => void;
+    setTargetLang: (lang: string) => void;
 }
 
-export function TranslationDisplay({ originalText, translatedText, isTranslating, targetLang, onTranscriptChange, sourceLang }: TranslationDisplayProps) {
+export function TranslationDisplay({
+    originalText,
+    translatedText,
+    isTranslating,
+    targetLang,
+    onTranscriptChange,
+    sourceLang,
+    setSourceLang,
+    setTargetLang
+}: TranslationDisplayProps) {
     const [isPlaying, setIsPlaying] = useState(false);
+    const [isSwapping, setIsSwapping] = useState(false);
     const utteranceRef = React.useRef<SpeechSynthesisUtterance | null>(null);
+
+    const showMicPulse = !originalText;
+
+    const handleSwap = () => {
+        setIsSwapping(true);
+        setTimeout(() => {
+            const temp = sourceLang;
+            setSourceLang(targetLang);
+            setTargetLang(temp);
+            setIsSwapping(false);
+        }, 300);
+    };
 
     // cleanup on unmount
     useEffect(() => {
@@ -47,8 +72,8 @@ export function TranslationDisplay({ originalText, translatedText, isTranslating
             utteranceRef.current = null;
         };
         utterance.onerror = (e) => {
-            console.error("Speech synthesis error:", e.error, e);
             if (e.error !== 'interrupted' && e.error !== 'canceled') {
+                console.error("Speech synthesis error:", e.error, e);
                 setIsPlaying(false);
             }
             utteranceRef.current = null;
@@ -73,50 +98,134 @@ export function TranslationDisplay({ originalText, translatedText, isTranslating
     };
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-6xl mx-auto px-4">
-            {/* Original Transcript */}
-            <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 min-h-[300px] flex flex-col relative overflow-hidden group">
-                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Original Transcript</h3>
-                <div className="flex-1 overflow-y-auto">
-                    <p className="text-xl text-gray-800 leading-relaxed font-medium">
-                        {originalText || <span className="text-gray-300 italic">Start speaking...</span>}
-                    </p>
-                </div>
-                <div className="absolute bottom-4 right-4">
-                    <SpeechRecorder
-                        onTranscriptChange={onTranscriptChange}
-                        language={sourceLang}
-                        variant="mini"
-                    />
-                </div>
-            </div>
+        <div className="relative w-full max-w-6xl mx-auto px-4 h-full flex flex-col py-4">
 
-            {/* Translated Output */}
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-3xl p-6 shadow-sm border border-blue-100 min-h-[300px] flex flex-col relative overflow-hidden group">
-                <h3 className="text-sm font-bold text-blue-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-                    Translated Output
-                    {isTranslating && <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />}
-                </h3>
+            <div className="flex flex-col md:flex-row gap-3 h-full relative">
 
-                <div className="flex-1 overflow-y-auto mb-10">
-                    <p className="text-xl text-blue-900 leading-relaxed font-medium">
-                        {translatedText || <span className="text-blue-300 italic">{isTranslating ? 'Translating...' : 'Translation will appear here...'}</span>}
-                    </p>
-                </div>
-
-                <div className={`absolute bottom-4 right-4 flex gap-2 transition-opacity ${translatedText ? 'opacity-100' : 'opacity-0'}`}>
+                {/* Desktop: Central Action Buttons */}
+                <div className="hidden md:flex absolute mt-10 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 flex-col items-center gap-1.5">
+                    <div className="relative">
+                        {showMicPulse && (
+                            <>
+                                <span className="pointer-events-none absolute -inset-1.5 rounded-full bg-sky-500/15 animate-ping" />
+                                <span className="pointer-events-none absolute -inset-1.5 rounded-full bg-sky-500/10 animate-ping [animation-delay:200ms]" />
+                                <span className="pointer-events-none absolute -inset-1.5 rounded-full bg-sky-500/10 animate-ping [animation-delay:400ms]" />
+                            </>
+                        )}
+                        <SpeechRecorder
+                            onTranscriptChange={onTranscriptChange}
+                            language={sourceLang}
+                            variant="default"
+                        />
+                    </div>
                     <button
-                        onClick={togglePlayback}
-                        className={`p-2 rounded-full shadow-sm transition-colors ${isPlaying
-                            ? 'bg-red-100 text-red-600 hover:bg-red-200'
-                            : 'bg-white text-blue-600 hover:bg-blue-600 hover:text-white'
-                            }`}
-                        title={isPlaying ? "Stop" : "Listen"}
+                        onClick={handleSwap}
+                        className="mt-4 p-1.5 rounded-full bg-white shadow-sm border border-slate-100 hover:bg-slate-50 text-slate-400 hover:text-sky-600 transition-all duration-300 transform hover:rotate-180"
+                        title="Swap Languages"
                     >
-                        {isPlaying ? <Square className="w-5 h-5 fill-current" /> : <Volume2 className="w-5 h-5" />}
+                        <ArrowRightLeft className={`w-4 h-4 ${isSwapping ? 'animate-spin' : ''}`} />
                     </button>
                 </div>
+
+                {/* Mobile: Fixed Microphone Button (Bottom Right) */}
+                <div className="md:hidden fixed bottom-6 right-6 z-30">
+                    <div className="relative">
+                        {showMicPulse && (
+                            <>
+                                <span className="pointer-events-none absolute -inset-1.5 rounded-full bg-sky-500/15 animate-ping" />
+                                <span className="pointer-events-none absolute -inset-1.5 rounded-full bg-sky-500/10 animate-ping [animation-delay:200ms]" />
+                                <span className="pointer-events-none absolute -inset-1.5 rounded-full bg-sky-500/10 animate-ping [animation-delay:400ms]" />
+                            </>
+                        )}
+                        <SpeechRecorder
+                            onTranscriptChange={onTranscriptChange}
+                            language={sourceLang}
+                            variant="default"
+                        />
+                    </div>
+                </div>
+
+                {/* Left Card: Input / Source */}
+                <div className={`flex-1 group relative flex flex-col h-full min-h-[300px] transition-all duration-300 ease-in-out ${isSwapping ? 'opacity-50 translate-y-4 md:translate-y-0 md:translate-x-4' : 'opacity-100 translate-y-0 md:translate-x-0'}`}>
+                    <div className="absolute -inset-0.5 bg-gradient-to-r from-slate-200 to-slate-100 rounded-xl opacity-75 blur transition duration-200 group-hover:opacity-100"></div>
+                    <div className="relative flex-1 bg-white rounded-lg p-4 shadow-sm flex flex-col overflow-hidden">
+
+                        {/* Source Header */}
+                        <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-50">
+                            <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Original</h3>
+                            <div className="relative z-10">
+                                <LanguageSelector
+                                    value={sourceLang}
+                                    onChange={setSourceLang}
+                                    variant="default"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Source Content */}
+                        <div className=" overflow-y-auto custom-scrollbar pr-1">
+                            <p className={`text-lg leading-relaxed font-medium transition-colors duration-300 ${originalText ? 'text-slate-800' : 'text-slate-300 italic'}`}>
+                                {originalText || "Tap the mic to start..."}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Mobile: Swap Languages Button (Between Cards) */}
+                <div className="md:hidden flex justify-center -my-1.5 relative z-10">
+                    <button
+                        onClick={handleSwap}
+                        className="p-2 rounded-full bg-white shadow-md border border-slate-200 hover:bg-slate-50 text-slate-400 hover:text-sky-600 transition-all duration-300 transform hover:rotate-180"
+                        title="Swap Languages"
+                    >
+                        <ArrowRightLeft className={`w-5 h-5 ${isSwapping ? 'animate-spin' : ''}`} />
+                    </button>
+                </div>
+
+                {/* Right Card: Output / Target */}
+                <div className={`flex-1 group relative flex flex-col h-full min-h-[300px] transition-all duration-300 ease-in-out ${isSwapping ? 'opacity-50 -translate-y-4 md:-translate-y-0 md:-translate-x-4' : 'opacity-100 translate-y-0 md:translate-x-0'}`}>
+                    <div className={`absolute -inset-0.5 bg-gradient-to-r from-sky-400 to-blue-500 rounded-xl opacity-75 blur transition duration-200 ${isTranslating ? 'animate-pulse' : ''} group-hover:opacity-100`}></div>
+                    <div className="relative flex-1 bg-gradient-to-br from-sky-50 to-white rounded-lg p-4 shadow-sm flex flex-col overflow-hidden">
+
+                        {/* Target Header */}
+                        <div className="flex items-center justify-between mb-2 pb-2 border-b border-sky-100/50">
+                            <h3 className="text-[10px] font-bold text-sky-500 uppercase tracking-widest flex items-center gap-1.5">
+                                Translated
+                                {isTranslating && <span className="w-1.5 h-1.5 bg-sky-500 rounded-full animate-ping" />}
+                            </h3>
+                            <div className="relative z-10">
+                                <LanguageSelector
+                                    value={targetLang}
+                                    onChange={setTargetLang}
+                                    variant="primary"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Target Content */}
+                        <div className=" overflow-y-auto custom-scrollbar pr-1 pb-8">
+                            <p className={`text-lg leading-relaxed font-medium transition-colors duration-300 ${translatedText ? 'text-sky-900' : 'text-sky-200 italic'}`}>
+                                {translatedText || (isTranslating ? 'Listening and translating...' : 'Translation will appear here...')}
+                            </p>
+                        </div>
+
+                        {/* Playback Controls */}
+                        <div className={`absolute bottom-4 right-4 transition-all duration-300 ${translatedText ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}>
+                            <button
+                                onClick={togglePlayback}
+                                className={`p-2.5 rounded-full shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 active:scale-95 ${isPlaying
+                                    ? 'bg-rose-500 text-white ring-2 ring-rose-500/20'
+                                    : 'bg-sky-500 text-white ring-2 ring-sky-500/20 hover:bg-sky-600'
+                                    }`}
+                                title={isPlaying ? "Stop Speaking" : "Listen to Translation"}
+                            >
+                                {isPlaying ? <Square className="w-4 h-4 fill-current" /> : <Volume2 className="w-4 h-4" />}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
             </div>
-        </div >
+        </div>
     );
 }

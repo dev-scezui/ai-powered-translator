@@ -2,8 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/Header';
-import { LanguageSelector } from '@/components/LanguageSelector';
-import { SpeechRecorder } from '@/components/SpeechRecorder';
 import { TranslationDisplay } from '@/components/TranslationDisplay';
 import { translateTextAction } from '@/app/actions';
 
@@ -41,28 +39,30 @@ export default function Home() {
   }, [debouncedTranscript, sourceLang, targetLang]);
 
   const handleTranscriptChange = (newTranscript: string, isFinal: boolean) => {
-    // Only update if we have something new, or if it's a final result
-    // For a simple prototype, we just overwrite. 
-    // real-world would append final results.
     setTranscript(newTranscript);
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans text-gray-900 pb-20">
+    <div className="bg-slate-50 font-sans text-slate-900 relative flex flex-col">
+
+      {/* Background Decor */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-sky-100 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
+        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-indigo-100 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
+        <div className="absolute -bottom-32 left-1/3 w-[500px] h-[500px] bg-slate-100 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000"></div>
+      </div>
+
       <Header />
 
-      <main className="max-w-7xl mx-auto pt-8">
-        <div className="text-center mb-10">
-          <h2 className="text-3xl font-extrabold text-gray-900 mb-2">Speak Naturally</h2>
-          <p className="text-gray-500">AI-powered medical translation in real-time.</p>
+      <main className="flex-1 relative z-10 pt-20 flex flex-col items-center justify-center">
+        <div className="text-center mb-8 px-4 animate-fade-in-down">
+          <h1 className="text-4xl md:text-5xl font-extrabold text-slate-800 mb-3 tracking-tight">
+            Transl<span className="text-sky-500">AI</span>
+          </h1>
+          <p className="text-slate-500 text-lg max-w-2xl mx-auto leading-relaxed">
+            Break down language barriers instantly. Speak naturally and let AI handle the translation in real-time.
+          </p>
         </div>
-
-        <LanguageSelector
-          sourceLang={sourceLang}
-          targetLang={targetLang}
-          setSourceLang={setSourceLang}
-          setTargetLang={setTargetLang}
-        />
 
         <TranslationDisplay
           originalText={transcript}
@@ -71,8 +71,9 @@ export default function Home() {
           targetLang={targetLang}
           onTranscriptChange={handleTranscriptChange}
           sourceLang={sourceLang}
+          setSourceLang={setSourceLang}
+          setTargetLang={setTargetLang}
         />
-
       </main>
     </div>
   );

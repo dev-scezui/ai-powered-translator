@@ -39,7 +39,8 @@ export function SpeechRecorder({ onTranscriptChange, language, variant = 'defaul
             recognitionRef.current.stop();
             setIsRecording(false);
         } else {
-            recognitionRef.current.onresult = (event: any) => {
+            const recognition = recognitionRef.current;
+            recognition.onresult = (event: any) => {
                 let fullTranscript = '';
                 for (let i = 0; i < event.results.length; ++i) {
                     fullTranscript += event.results[i][0].transcript;
@@ -47,12 +48,12 @@ export function SpeechRecorder({ onTranscriptChange, language, variant = 'defaul
                 onTranscriptChange(fullTranscript, true);
             };
 
-            recognitionRef.current.onerror = (event: any) => {
+            recognition.onerror = (event: any) => {
                 console.error("Speech recognition error", event.error);
                 setIsRecording(false);
             };
 
-            recognitionRef.current.start();
+            recognition.start();
             setIsRecording(true);
         }
     };
@@ -60,34 +61,44 @@ export function SpeechRecorder({ onTranscriptChange, language, variant = 'defaul
     const isMini = variant === 'mini';
 
     return (
-        <div className={`flex justify-center ${isMini ? '' : 'my-8'}`}>
-            <button
-                onClick={toggleRecording}
-                title={isMini ? (isRecording ? "Listening..." : "Tap to Speak") : undefined}
-                className={`
-          relative flex items-center justify-center transition-all duration-300 shadow-lg
-          ${isMini
-                        ? `rounded-full p-2 ${isRecording
-                            ? 'bg-red-100 text-red-600 hover:bg-red-200'
-                            : 'bg-white text-blue-600 hover:bg-blue-600 hover:text-white'}`
-                        : `w-20 h-20 rounded-full ${isRecording
-                            ? 'bg-red-500 text-white shadow-red-500/50 scale-110'
-                            : 'bg-blue-600 text-white shadow-blue-600/50 hover:bg-blue-700 hover:scale-105'}`
-                    }
-        `}
-            >
+        <div className={`flex justify-center ${isMini ? '' : 'my-2'}`}>
+            <div className="relative group">
+                {/* Pulsing Effect Background */}
                 {isRecording && !isMini && (
-                    <span className="absolute inset-0 rounded-full animate-ping bg-red-500 opacity-20"></span>
+                    <>
+                        <div className="absolute inset-0 bg-rose-500 rounded-full animate-ping opacity-20"></div>
+                        <div className="absolute -inset-4 bg-rose-500 rounded-full animate-pulse opacity-10"></div>
+                    </>
                 )}
-                {isRecording ? (
-                    <Square className={`${isMini ? 'w-5 h-5 fill-current' : 'w-8 h-8 fill-current'}`} />
-                ) : (
-                    <Mic className={`${isMini ? 'w-5 h-5' : 'w-8 h-8'}`} />
-                )}
-            </button>
+
+                <button
+                    onClick={toggleRecording}
+                    title={isMini ? (isRecording ? "Listening..." : "Tap to Speak") : undefined}
+                    className={`
+                        relative flex items-center justify-center transition-all duration-300 transform
+                        ${isMini
+                            ? `p-2 rounded-full ${isRecording
+                                ? 'bg-rose-100 text-rose-600 hover:bg-rose-200'
+                                : 'bg-slate-100 text-sky-600 hover:bg-sky-50'}`
+                            : `w-16 h-16 rounded-full shadow-lg ${isRecording
+                                ? 'bg-gradient-to-br from-rose-500 to-pink-600 text-white scale-110 shadow-rose-500/40'
+                                : 'bg-gradient-to-br from-sky-500 to-blue-600 text-white shadow-sky-500/40 hover:scale-105 hover:shadow-sky-500/50'}`
+                        }
+                    `}
+                >
+                    {isRecording ? (
+                        <Square className={`${isMini ? 'w-4 h-4 fill-current' : 'w-6 h-6 fill-current'}`} />
+                    ) : (
+                        <Mic className={`${isMini ? 'w-4 h-4' : 'w-6 h-6'}`} />
+                    )}
+                </button>
+            </div>
+
             {!isMini && (
-                <div className="absolute mt-24 text-sm font-medium text-gray-400">
-                    {isRecording ? 'Listening...' : 'Tap to Speak'}
+                <div className="absolute mt-18 text-center transition-opacity duration-300">
+                    <p className={`text-[9px] font-bold tracking-widest uppercase whitespace-nowrap ${isRecording ? 'text-rose-500 animate-pulse' : 'text-slate-300'}`}>
+                        {isRecording ? 'Listening...' : ''}
+                    </p>
                 </div>
             )}
         </div>
