@@ -14,7 +14,7 @@ export async function translateTextAction(text: string, sourceLang: string, targ
         const prompt = `Translate the following medical text from ${sourceLang} to ${targetLang}. Ensure medical terms are accurately translated. Only provide the translation, no extra text.\n\nText: "${text}"`;
 
         const response = await openai.chat.completions.create({
-            model: "openai/gpt-oss-120b", // Using Llama 3 via Groq for speed and free tier
+            model: "openai/gpt-oss-120b",
             messages: [{ role: "user", content: prompt }],
         });
 
