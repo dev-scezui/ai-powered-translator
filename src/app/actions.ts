@@ -1,6 +1,8 @@
 'use server';
 
 import OpenAI from 'openai';
+import { headers } from 'next/headers';
+import { rateLimiter } from '@/lib/rate-limit';
 
 const openai = new OpenAI({
     apiKey: process.env.GROQ_API_KEY,
@@ -9,6 +11,13 @@ const openai = new OpenAI({
 
 export async function translateTextAction(text: string, sourceLang: string, targetLang: string) {
     if (!text) return '';
+
+    try {
+        const ip = (await headers()).get("x-forwarded-for") || "127.0.0.1";
+        await rateLimiter.check(10, ip); // 10 requests per minute
+    } catch {
+        return "Rate limit exceeded. Please try again later.";
+    }
 
     try {
         const prompt = `Translate the following medical text from ${sourceLang} to ${targetLang}. Ensure medical terms are accurately translated. Only provide the translation, no extra text.\n\nText: "${text}"`;

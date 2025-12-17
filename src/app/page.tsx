@@ -69,16 +69,9 @@ export default function Home() {
           translatedText={translatedText}
           isTranslating={isTranslating}
           targetLang={targetLang}
+          onTranscriptChange={handleTranscriptChange}
+          sourceLang={sourceLang}
         />
-
-        <div className="absolute bottom-10 left-0 right-0 flex justify-center pointer-events-none">
-          <div className="pointer-events-auto">
-            <SpeechRecorder
-              onTranscriptChange={handleTranscriptChange}
-              language={sourceLang}
-            />
-          </div>
-        </div>
 
       </main>
     </div>

@@ -1,15 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { Volume2, Square } from 'lucide-react';
+import { SpeechRecorder } from './SpeechRecorder';
 
 interface TranslationDisplayProps {
     originalText: string;
     translatedText: string;
     isTranslating: boolean;
     targetLang: string;
+    onTranscriptChange: (transcript: string, isFinal: boolean) => void;
+    sourceLang: string;
 }
 
-export function TranslationDisplay({ originalText, translatedText, isTranslating, targetLang }: TranslationDisplayProps) {
+export function TranslationDisplay({ originalText, translatedText, isTranslating, targetLang, onTranscriptChange, sourceLang }: TranslationDisplayProps) {
     const [isPlaying, setIsPlaying] = useState(false);
+    const utteranceRef = React.useRef<SpeechSynthesisUtterance | null>(null);
 
     // cleanup on unmount
     useEffect(() => {
@@ -34,13 +38,20 @@ export function TranslationDisplay({ originalText, translatedText, isTranslating
         window.speechSynthesis.cancel();
 
         const utterance = new SpeechSynthesisUtterance(text);
+        utteranceRef.current = utterance; // Store ref to prevent GC
         utterance.lang = lang;
 
         utterance.onstart = () => setIsPlaying(true);
-        utterance.onend = () => setIsPlaying(false);
-        utterance.onerror = (e) => {
-            console.error("Speech synthesis error", e);
+        utterance.onend = () => {
             setIsPlaying(false);
+            utteranceRef.current = null;
+        };
+        utterance.onerror = (e) => {
+            console.error("Speech synthesis error:", e.error, e);
+            if (e.error !== 'interrupted' && e.error !== 'canceled') {
+                setIsPlaying(false);
+            }
+            utteranceRef.current = null;
         };
 
         window.speechSynthesis.speak(utterance);
@@ -71,6 +82,13 @@ export function TranslationDisplay({ originalText, translatedText, isTranslating
                         {originalText || <span className="text-gray-300 italic">Start speaking...</span>}
                     </p>
                 </div>
+                <div className="absolute bottom-4 right-4">
+                    <SpeechRecorder
+                        onTranscriptChange={onTranscriptChange}
+                        language={sourceLang}
+                        variant="mini"
+                    />
+                </div>
             </div>
 
             {/* Translated Output */}
@@ -99,6 +117,6 @@ export function TranslationDisplay({ originalText, translatedText, isTranslating
                     </button>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }
