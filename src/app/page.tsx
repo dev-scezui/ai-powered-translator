@@ -23,7 +23,7 @@ export default function Home() {
   const [translatedText, setTranslatedText] = useState('');
   const [isTranslating, setIsTranslating] = useState(false);
 
-  const debouncedTranscript = useDebounce(transcript, 800);
+  const debouncedTranscript = useDebounce(transcript, 3000);
 
   // Handle translation when transcript changes (debounced)
   useEffect(() => {
@@ -75,6 +75,12 @@ export default function Home() {
           setTargetLang={setTargetLang}
         />
       </main>
+
+      <footer className="relative py-6 text-center text-slate-400 text-xs px-4">
+        <p>
+          Microphone access is used for speech recognition. Voice data is processed by the server to provide translations.
+        </p>
+      </footer>
     </div>
   );
 }

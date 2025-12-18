@@ -7,9 +7,11 @@ interface SpeechRecorderProps {
     onTranscriptChange: (transcript: string, isFinal: boolean) => void;
     language: string;
     variant?: 'default' | 'mini';
+    onPermissionDenied?: () => void;
+    onRecordingStart?: () => void;
 }
 
-export function SpeechRecorder({ onTranscriptChange, language, variant = 'default' }: SpeechRecorderProps) {
+export function SpeechRecorder({ onTranscriptChange, language, variant = 'default', onPermissionDenied, onRecordingStart }: SpeechRecorderProps) {
     const [isRecording, setIsRecording] = useState(false);
     const recognitionRef = useRef<any>(null);
     const accumulatedTranscriptRef = useRef<string>(''); // Track accumulated final transcript (desktop only)
@@ -99,7 +101,16 @@ export function SpeechRecorder({ onTranscriptChange, language, variant = 'defaul
 
             recognition.onerror = (event: any) => {
                 console.error("Speech recognition error", event.error);
+                if (event.error === 'not-allowed' && onPermissionDenied) {
+                    onPermissionDenied();
+                }
                 setIsRecording(false);
+            };
+
+            recognition.onstart = () => {
+                if (onRecordingStart) {
+                    onRecordingStart();
+                }
             };
 
             recognition.start();

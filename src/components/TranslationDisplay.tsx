@@ -26,9 +26,18 @@ export function TranslationDisplay({
 }: TranslationDisplayProps) {
     const [isPlaying, setIsPlaying] = useState(false);
     const [isSwapping, setIsSwapping] = useState(false);
+    const [permissionError, setPermissionError] = useState(false);
     const utteranceRef = React.useRef<SpeechSynthesisUtterance | null>(null);
 
     const showMicPulse = !originalText;
+
+    const handlePermissionDenied = () => {
+        setPermissionError(true);
+    };
+
+    const handleRecordingStart = () => {
+        setPermissionError(false);
+    };
 
     const handleSwap = () => {
         setIsSwapping(true);
@@ -100,6 +109,15 @@ export function TranslationDisplay({
     return (
         <div className="relative w-full max-w-6xl mx-auto px-4 h-full flex flex-col py-4">
 
+            {permissionError && (
+                <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-4 flex items-center gap-2 animate-fade-in-down">
+                    <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                    <p className="text-sm font-medium">
+                        Microphone access denied. Please allow microphone permissions in your browser settings to use speech recognition.
+                    </p>
+                </div>
+            )}
+
             <div className="flex flex-col md:flex-row gap-3 h-full relative">
 
                 {/* Desktop: Central Action Buttons */}
@@ -116,6 +134,8 @@ export function TranslationDisplay({
                             onTranscriptChange={onTranscriptChange}
                             language={sourceLang}
                             variant="default"
+                            onPermissionDenied={handlePermissionDenied}
+                            onRecordingStart={handleRecordingStart}
                         />
                     </div>
                     <button
@@ -139,6 +159,8 @@ export function TranslationDisplay({
                         )}
                         <SpeechRecorder
                             onTranscriptChange={onTranscriptChange}
+                            onPermissionDenied={handlePermissionDenied}
+                            onRecordingStart={handleRecordingStart}
                             language={sourceLang}
                             variant="default"
                         />

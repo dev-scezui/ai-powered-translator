@@ -1,36 +1,50 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TranslAI - AI-Powered Medical Translation Assistant
 
-## Getting Started
+NAO is a Next.js-based medical translation application designed to provide accurate and fast translations for medical contexts. It leverages AI to ensure terminology accuracy and supports speech interaction.
 
-First, run the development server:
+## 🏗️ Code Structure
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+The project follows a modern Next.js App Router structure with TypeScript.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Directory Layout
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **`src/app/`**: Core application logic and routing.
+  - `actions.ts`: Server Actions handling API integrations and business logic securely on the server.
+  - `page.tsx`: The main entry point and UI composition.
+  - `layout.tsx`: Root layout definition including global styles and fonts.
+  - `globals.css`: Global Tailwind CSS styles.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **`src/components/`**: Modular UI components.
+  - `Header.tsx`: Application navigation and branding.
+  - `LanguageSelector.tsx`: Interface for selecting source and target languages.
+  - `SpeechRecorder.tsx`: Handles microphone input and speech-to-text interactions.
+  - `TranslationDisplay.tsx`: Renders the view for original and translated output.
 
-## Learn More
+- **`src/lib/`**: Shared utilities and helper functions.
+  - `rate-limit.ts`: Custom implementation of a token bucket rate limiter.
 
-To learn more about Next.js, take a look at the following resources:
+## 🤖 AI Tools & Integration
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+NAO utilizes high-performance AI models for translation tasks.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **Groq API**: The application uses Groq's high-speed inference engine for near real-time responses.
+- **OpenAI SDK**: The `openai` Node.js library is used as the client to communicate with the Groq API endpoint (`https://api.groq.com/openai/v1`).
+- **Model**: Currently configured to use `openai/gpt-oss-120b` (via Groq) for high-fidelity medical translations.
 
-## Deploy on Vercel
+## 🔒 Security Considerations
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Security is a priority in the application architecture.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 1. Rate Limiting
+To prevent abuse and ensure service availability, a custom rate limiting mechanism is implemented in `src/lib/rate-limit.ts`.
+- **Mechanism**: Token bucket algorithm tracking requests by IP address.
+- **Policy**: Limits users to **10 requests per minute**.
+- **Implementation**: Applied at the Server Action level (`translateTextAction`), ensuring checks occur before any AI API calls are made.
+
+### 2. Server-Side Execution
+- **API Key Protection**: All interactions with the AI provider happen within Server Actions (`src/app/actions.ts`). The `GROQ_API_KEY` is never exposed to the client browser.
+- **Environment Variables**: Sensitive configuration is managed via `.env` files and accessed securely at runtime.
+
+### 3. Input Handling
+- **Validation**: Basic input validation ensures empty or malformed requests are rejected early.
+- **Prompt Engineering**: System prompts are carefully constructed to restrict the AI's output strictly to translation tasks, minimizing the risk of prompt injection or irrelevant outputs.
