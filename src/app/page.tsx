@@ -23,7 +23,7 @@ export default function Home() {
   const [translatedText, setTranslatedText] = useState('');
   const [isTranslating, setIsTranslating] = useState(false);
 
-  const debouncedTranscript = useDebounce(transcript, 800);
+  const debouncedTranscript = useDebounce(transcript, 3000);
 
   // Handle translation when transcript changes (debounced)
   useEffect(() => {
