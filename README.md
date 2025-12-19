@@ -2,49 +2,49 @@
 
 NAO is a Next.js-based medical translation application designed to provide accurate and fast translations for medical contexts. It leverages AI to ensure terminology accuracy and supports speech interaction.
 
-## 🏗️ Code Structure
+## 🛠️ Installation
 
-The project follows a modern Next.js App Router structure with TypeScript.
+To get the project running locally, follow these steps:
 
-### Directory Layout
+1.  **Clone the repository:**
 
-- **`src/app/`**: Core application logic and routing.
-  - `actions.ts`: Server Actions handling API integrations and business logic securely on the server.
-  - `page.tsx`: The main entry point and UI composition.
-  - `layout.tsx`: Root layout definition including global styles and fonts.
-  - `globals.css`: Global Tailwind CSS styles.
+    ```bash
+    git clone <repository-url>
+    cd nao
+    ```
 
-- **`src/components/`**: Modular UI components.
-  - `Header.tsx`: Application navigation and branding.
-  - `LanguageSelector.tsx`: Interface for selecting source and target languages.
-  - `SpeechRecorder.tsx`: Handles microphone input and speech-to-text interactions.
-  - `TranslationDisplay.tsx`: Renders the view for original and translated output.
+2.  **Install dependencies:**
 
-- **`src/lib/`**: Shared utilities and helper functions.
-  - `rate-limit.ts`: Custom implementation of a token bucket rate limiter.
+    ```bash
+    npm install
+    # or
+    yarn install
+    # or
+    pnpm install
+    ```
 
-## 🤖 AI Tools & Integration
+3.  **Set up environment variables:**
 
-NAO utilizes high-performance AI models for translation tasks.
+    Create a `.env` file in the root directory and add your Groq API key.
 
-- **Groq API**: The application uses Groq's high-speed inference engine for near real-time responses.
-- **OpenAI SDK**: The `openai` Node.js library is used as the client to communicate with the Groq API endpoint (`https://api.groq.com/openai/v1`).
-- **Model**: Currently configured to use `openai/gpt-oss-120b` (via Groq) for high-fidelity medical translations.
+    ```env
+    GROQ_API_KEY=your_groq_api_key_here
+    ```
 
-## 🔒 Security Considerations
+4.  **Run the development server:**
 
-Security is a priority in the application architecture.
+    ```bash
+    npm run dev
+    # or
+    yarn dev
+    # or
+    pnpm dev
+    ```
 
-### 1. Rate Limiting
-To prevent abuse and ensure service availability, a custom rate limiting mechanism is implemented in `src/lib/rate-limit.ts`.
-- **Mechanism**: Token bucket algorithm tracking requests by IP address.
-- **Policy**: Limits users to **10 requests per minute**.
-- **Implementation**: Applied at the Server Action level (`translateTextAction`), ensuring checks occur before any AI API calls are made.
+## 🔑 Environment Variables
 
-### 2. Server-Side Execution
-- **API Key Protection**: All interactions with the AI provider happen within Server Actions (`src/app/actions.ts`). The `GROQ_API_KEY` is never exposed to the client browser.
-- **Environment Variables**: Sensitive configuration is managed via `.env` files and accessed securely at runtime.
+The application requires the following environment variables to function correctly:
 
-### 3. Input Handling
-- **Validation**: Basic input validation ensures empty or malformed requests are rejected early.
-- **Prompt Engineering**: System prompts are carefully constructed to restrict the AI's output strictly to translation tasks, minimizing the risk of prompt injection or irrelevant outputs.
+| Variable | Description |
+| :--- | :--- |
+| `GROQ_API_KEY` | Your API key from Groq Cloud. This is used to authenticate requests to the LLM provider. |
